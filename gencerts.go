@@ -18,7 +18,7 @@ import (
 )
 
 // Creates self-signed certificate in current working directory
-func GenerateCert(certName string, keyName string) {
+func GenerateCert(certName string, keyName string, quiet bool) {
 	hostname, err := os.Hostname()
 	var (
 		host      = flag.String("host", hostname, "Comma-separated hostnames and IPs to generate a certificate for")
@@ -96,14 +96,18 @@ func GenerateCert(certName string, keyName string) {
 	}
 	pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
 	certOut.Close()
-	log.Printf("written %s\n", certName)
+	if !quiet {
+		log.Printf("written %s\n", certName)
+	}
 
 	keyOut, err := os.OpenFile(keyName, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
-		log.Print("failed to open %s for writing:", keyName, err)
+		log.Printf("failed to open %s for writing. Error: %s", keyName, err.Error())
 		return
 	}
 	pem.Encode(keyOut, &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(priv)})
 	keyOut.Close()
-	log.Printf("written %s\n", keyName)
+	if !quiet {
+		log.Printf("written %s\n", keyName)
+	}
 }
